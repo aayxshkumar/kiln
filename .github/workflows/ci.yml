@@ -1,0 +1,27 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build
+        run: cargo build --release
+      - name: Unit tests
+        run: cargo test --release
+      - name: Compare with V8
+        run: python3 tools/check.py
+      - name: Mutants
+        if: matrix.os == 'ubuntu-24.04'
+        run: python3 tools/mutants.py
